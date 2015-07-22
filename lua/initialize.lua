@@ -7,6 +7,7 @@ lua_shared_dict ndf_containerHosts 8m -- dict from container id to hostname.
 
 -- dicts for finding containers to service a request.
 lua_shared_dict ndf_labels 8m -- dict from label 'key=value' to comma separated list of containers matching that.
+lua_shared_dict ndf_all 8m -- dict of id's added in order
 
 -- dicts with decoded information needed to reverse-proxy.
 lua_shared_dict ndf_hostport 8m -- dict from container id to the hostport being exposed.

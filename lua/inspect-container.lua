@@ -20,10 +20,10 @@ end
 
 -- materialize views/transform request --
 local id = container.Id
-local foundPort = false
 local existed = ngx.shared.containerHosts.get(id)
 
 -- store hostport. json entry looks like: { "22/tcp": [{ "HostPort": "11022" }] }
+local foundPort = false
 for port,binding in pairs(container.HostConfig.PortBindings) do
 	local i = string.find(port, "/")
 	if string.sub(port, i) == "/tcp" then
@@ -49,8 +49,8 @@ function insureId(str)
 	end
 end
 for label,val in pairs(container.Config.Labels) do
-	-- pure labels without values
-	if val != false and val != 0 and val != "" then
+	if val and val != 0 and val != "" then
+		-- pure labels without values
 		local current = insureId(ngx.shared.labels[label])
 		if current then
 			ngx.shared.labels.set(label, current)
@@ -68,6 +68,10 @@ end
 
 -- store containerHosts and maybe containers --
 ngx.shared.ndf_containerHosts.set(id, containerHost)
+if not existed then
+	local n = ngx.shared.ndf_config.incr("all_size")
+	ngx.shared.ndf_all.set(n, id)
+end
 if ngx.shared.ndf_config.get("storeJson") then
 	ngx.shared.ndf_containers.set(id, container)
 end
