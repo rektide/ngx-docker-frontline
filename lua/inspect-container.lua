@@ -3,7 +3,7 @@ local cjson = require "resty.libcjson"
 -- extract request --
 -- read ContainerHost info
 local headers = ngx.request.get_headers()
-local containerHost = headers.ContainerHost
+local containerHost = headers["Frontline-ContainerHost"]
 
 if hostname == nil then
 	ngx.log(ngx.ERR, "InspectContainer had no ContainerHost header")
@@ -24,7 +24,7 @@ local foundPort = false
 -- store hostport. json entry looks like: { "22/tcp": [{ "HostPort": "11022" }] }
 for port,binding in pairs(container.HostConfig.PortBindings) do
 	local i = string.find(port, "/")
-	if string.sub(port, i) === "/tcp" then
+	if string.sub(port, i) == "/tcp" then
 		port = tonumber(string.sub(port, 0, i - 1)) -- finalize port
 		if ngx.shared.ndf_config.get("targetPort") == port then -- check port
 			binding = tonumber(binding[0].HostPort)
@@ -40,10 +40,17 @@ end
 
 -- store labels
 for label,val in pairs(container.Config.Labels) do
-	local key = label .. "=" .. val
 	local current = ngx.shared.labels[key]
 	current = current == nil ? current .. "," .. id : id
-	ngx.shared.labels.set(key, current)
+
+	-- pure labels without values
+	if val != false and val != 0 and val != "" then
+		ngx.shared.labels.set(label, current)
+	end
+
+	-- key:value label
+	local full = label .. "=" .. val
+	ngx.shared.labels.set(full, current)
 end
 
 

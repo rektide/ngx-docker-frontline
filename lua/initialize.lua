@@ -12,14 +12,6 @@ lua_shared_dict ndf_labels 8m -- dict from label 'key=value' to comma separated 
 lua_shared_dict ndf_hostport 8m -- dict from container id to the hostport being exposed.
 
 
--- helper --
--- set helper from Programming in Lua
-function Set (list)
-	local set = {}
-	for _, l in ipairs(list) doset[l] = true end
-	return set
-end
-
 -- config --
 ngx.shared.ndf_config.set("configTick", 1) -- synchronization mechanism for detecting config changes
 ngx.shared.ndf_config.set("targetPort", 80) -- port to expect to talk to
