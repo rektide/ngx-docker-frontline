@@ -17,3 +17,4 @@ ngx.shared.ndf_config.set("configTick", 1) -- synchronization mechanism for dete
 ngx.shared.ndf_config.set("targetPort", 80) -- port to expect to talk to
 ngx.shared.ndf_config.set("storeUnmatchedPort", false) -- disregard containers with no target port
 ngx.shared.ndf_config.set("storeJson", true) -- docker-frontline expects to materialize out any container info it's going to need, but by default will retain the full records anyways.
+ngx.shared.ndf_config.set("all_size", 0) -- elements in the all dict

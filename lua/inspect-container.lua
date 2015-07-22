@@ -19,7 +19,9 @@ end
 
 
 -- materialize views/transform request --
+local id = container.Id
 local foundPort = false
+local existed = ngx.shared.containerHosts.get(id)
 
 -- store hostport. json entry looks like: { "22/tcp": [{ "HostPort": "11022" }] }
 for port,binding in pairs(container.HostConfig.PortBindings) do
@@ -39,24 +41,33 @@ if !foundPort and !ngx.shared.ndf_config.get("storeUnmatchedPort") then
 end
 
 -- store labels
+function insureId(str)
+	if not str then
+		return id
+	elseif not string:find(str, id)	then
+		return str .. " " .. id
+	end
+end
 for label,val in pairs(container.Config.Labels) do
-	local current = ngx.shared.labels[key]
-	current = current == nil ? current .. "," .. id : id
-
 	-- pure labels without values
 	if val != false and val != 0 and val != "" then
-		ngx.shared.labels.set(label, current)
+		local current = insureId(ngx.shared.labels[label])
+		if current then
+			ngx.shared.labels.set(label, current)
+		end
 	end
 
 	-- key:value label
 	local full = label .. "=" .. val
-	ngx.shared.labels.set(full, current)
+	local currentFull = insureId(ngx.shared.labels[full])
+	if currentFull then
+		ngx.shared.labels.set(full, current)
+	end
 end
 
 
 -- store containerHosts and maybe containers --
-local id = container.Id
-ngx.shared.ndf_containers.set(id, container)
+ngx.shared.ndf_containerHosts.set(id, containerHost)
 if ngx.shared.ndf_config.get("storeJson") then
-	ngx.shared.ndf_containerHosts.set(id, containerHost)
+	ngx.shared.ndf_containers.set(id, container)
 end
